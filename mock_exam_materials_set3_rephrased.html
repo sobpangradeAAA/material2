@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Mock Exam Set 3</title>
+<style>
+:root {
+  --bg:#f6f7fb; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
+  --blue:#2f5bd4; --green:#16a34a; --greenbg:#e9f8ef; --red:#dc2626; --redbg:#fdecec; --border:#e5e7eb;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+.wrap{max-width:1100px;margin:28px auto;padding:0 16px}
+.topbar{background:var(--card);border-radius:22px;padding:16px 18px;box-shadow:0 10px 24px rgba(0,0,0,.05);position:sticky;top:12px;z-index:10}
+.progress-row{display:flex;align-items:center;gap:14px}
+.progress{flex:1;height:12px;background:#e6eaf5;border-radius:999px;overflow:hidden}
+.progress > div{height:100%;background:var(--blue);width:0%}
+.counter{font-weight:700;min-width:88px;text-align:right}
+.scorebox{display:flex;gap:10px;align-items:center}
+.badge{padding:8px 14px;border-radius:999px;font-weight:700}
+.badge.red{background:#f8e2de;color:#9f2f22}
+.badge.green{background:#dff1df;color:#1f7a3d}
+.panel{background:var(--card);border-radius:22px;padding:22px;box-shadow:0 10px 24px rgba(0,0,0,.05);margin-top:16px}
+.tags{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+.tag{background:#edf2ff;color:#3b4a6b;padding:10px 16px;border-radius:999px;font-weight:700;font-size:14px}
+.qcard{background:#fafafa;border:1px solid var(--border);border-radius:20px;padding:18px 18px 16px}
+.qhead{font-size:31px;font-weight:800;margin-bottom:8px}
+.meta{color:var(--muted);font-size:14px;margin-bottom:6px}
+.question{font-size:19px;line-height:1.55;margin:10px 0 16px;font-weight:700}
+.option{width:100%;text-align:left;border:none;background:#eef0f6;padding:18px 18px;border-radius:18px;margin:12px 0;font-size:18px;cursor:pointer;transition:.15s}
+.option:hover{transform:translateY(-1px)}
+.option.selected{outline:3px solid #b8c7ff;background:#f5f7ff}
+.option.correct{background:var(--greenbg);outline:3px solid var(--green)}
+.option.wrong{background:var(--redbg);outline:3px solid var(--red)}
+.feedback{margin-top:14px;padding:18px;border-radius:18px;background:#fff7f7;border:1px solid #f3d5d5;display:none}
+.feedback.ok{background:#eefaf2;border-color:#caebd6}
+.feedback .label{font-weight:800;margin-bottom:6px}
+.actions{display:flex;justify-content:space-between;align-items:center;margin-top:18px}
+.btn{border:none;border-radius:18px;padding:16px 22px;font-size:18px;font-weight:800;cursor:pointer}
+.btn.primary{background:var(--blue);color:#fff}
+.btn.secondary{background:#e8edf8;color:#4761a8}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.summary{display:none}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.sumcard{background:#fafafa;border:1px solid var(--border);border-radius:18px;padding:16px}
+.missed-list .item{background:#fafafa;border:1px solid var(--border);border-radius:18px;padding:16px;margin-top:14px}
+.small{font-size:14px;color:var(--muted)}
+@media (max-width:760px){.qhead{font-size:24px}.grid{grid-template-columns:1fr}.question{font-size:17px}.option{font-size:16px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="progress-row">
+      <div class="progress"><div id="bar"></div></div>
+      <div class="counter" id="counter">1 / 100</div>
+      <div class="scorebox">
+        <div class="badge red">✕ <span id="wrongCount">0</span></div>
+        <div class="badge green">✓ <span id="rightCount">0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="startPanel">
+    <div class="tags">
+      <div class="tag">โลหะและอบชุบ</div><div class="tag">พอลิเมอร์</div><div class="tag">คอมโพสิต</div>
+      <div class="tag">เซรามิก</div><div class="tag">กระบวนการผลิต</div>
+    </div>
+    <p style="font-size:18px;line-height:1.6;margin:0 0 16px">
+      ชุดนี้เปลี่ยนคำถามใหม่และเรียบเรียงใหม่ให้ใกล้แนวข้อสอบจริงจากไฟล์ที่เธอส่งมากขึ้น เน้นนิยามตรง เปรียบเทียบคำที่ชอบสับสน
+      และตัวลวงที่พอเจอในข้อสอบจริงได้
+    </p>
+    <button class="btn primary" id="startBtn">เริ่มทำข้อสอบ</button>
+  </div>
+
+  <div class="panel" id="quizPanel" style="display:none">
+    <div class="qcard">
+      <div class="qhead" id="qnum"></div>
+      <div class="meta" id="qcat"></div>
+      <div class="question" id="question"></div>
+      <div id="options"></div>
+      <div class="feedback" id="feedback"></div>
+      <div class="actions">
+        <button class="btn secondary" id="prevBtn">ย้อนกลับ</button>
+        <div style="display:flex;gap:10px">
+          <button class="btn secondary" id="resetThisBtn">ล้างคำตอบ</button>
+          <button class="btn primary" id="nextBtn">ข้อต่อไป</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel summary" id="summaryPanel">
+    <h2 style="margin-top:0">สรุปคะแนน</h2>
+    <div class="grid">
+      <div class="sumcard"><div class="small">คะแนนรวม</div><div style="font-size:34px;font-weight:800" id="finalScore"></div></div>
+      <div class="sumcard"><div class="small">เปอร์เซ็นต์</div><div style="font-size:34px;font-weight:800" id="finalPct"></div></div>
+    </div>
+    <div class="sumcard" style="margin-top:14px">
+      <div class="small">คะแนนแยกตามหัวข้อ</div>
+      <div id="byCat" style="margin-top:10px;line-height:1.8"></div>
+    </div>
+    <div class="missed-list" id="missed"></div>
+    <div style="margin-top:18px"><button class="btn primary" onclick="location.reload()">เริ่มใหม่</button></div>
+  </div>
+</div>
+
+<script>
+const questions = [{"cat": "Metal", "q": "จากแนวคิด TTT diagram ถ้านำเหล็กยูเทคทอยด์ไปแช่คงอุณหภูมิบริเวณ 650°C จนการเปลี่ยนเฟสเสร็จสมบูรณ์ โครงสร้างสุดท้ายควรเป็นข้อใด", "choices": ["100% coarse pearlite", "100% bainite", "100% martensite", "tempered martensite"], "a": 0, "ex": "ช่วงอุณหภูมิสูงในเขต pearlite ให้ coarse pearlite"}, {"cat": "Metal", "q": "หากแช่เหล็กยูเทคทอยด์ที่ 400°C ชั่วเวลาหนึ่งจนเริ่มเกิด bainite แล้วจึง quench ทันที โครงสร้างสุดท้ายมีแนวโน้มเป็นข้อใด", "choices": ["bainite ล้วน", "bainite + martensite", "fine pearlite ล้วน", "austenite ล้วน"], "a": 1, "ex": "ส่วนที่เกิด bainite แล้วคงเป็น bainite ส่วน austenite ที่เหลือจะกลายเป็น martensite หลัง quench"}, {"cat": "Metal", "q": "ข้อความใดอธิบายความต่างระหว่าง TTT และ CCT ได้ถูกต้องที่สุด", "choices": ["TTT ใช้กับการเย็นต่อเนื่อง ส่วน CCT ใช้กับการแช่คงอุณหภูมิ", "TTT ใช้กับการแช่อุณหภูมิคงที่ ส่วน CCT ใช้กับการเย็นต่อเนื่อง", "TTT ใช้ได้เฉพาะกับ martensite แต่ CCT ใช้กับ pearlite", "TTT และ CCT ให้ผลเหมือนกันทุกกรณี"], "a": 1, "ex": "TTT = isothermal transformation, CCT = continuous cooling"}, {"cat": "Metal", "q": "จุดประสงค์หลักของการ quench ในการผลิต martensitic steel คือข้อใด", "choices": ["ทำให้ austenite มีเวลามากพอเปลี่ยนเป็น pearlite", "หลบเขต pearlite/bainite เพื่อให้เกิด martensite มากขึ้น", "ทำให้ cementite กลมตัว", "ลดความเค้นตกค้างโดยตรง"], "a": 1, "ex": "ต้องเย็นเร็วพอหลบ nose ของ pearlite/bainite"}, {"cat": "Metal", "q": "ข้อใดกล่าวถึง martensite ได้ถูกต้องที่สุด", "choices": ["เป็นโครงสร้างจากการเปลี่ยนเฟสแบบ diffusionless", "เกิดเฉพาะเมื่อแช่ที่อุณหภูมิสูงกว่า A1 นานๆ", "มีความเหนียวสูงกว่าทุกโครงสร้าง", "เกิดจาก ferrite + cementite เรียงเป็นชั้น"], "a": 0, "ex": "martensite เกิดแบบ diffusionless จากการเย็นเร็ว"}, {"cat": "Metal", "q": "ข้อใดเป็นผลทั่วไปของ tempering หลัง quench", "choices": ["martensite เปลี่ยนกลับเป็น austenite ทั้งหมด", "ลด brittleness และเพิ่ม toughness", "เพิ่ม hardness สูงสุดเสมอ", "ทำให้เกิด coarse pearlite"], "a": 1, "ex": "tempering ลดความเปราะและปรับสมบัติให้ใช้งานได้ดีขึ้น"}, {"cat": "Metal", "q": "ถ้าต้องการให้เหล็กนิ่มที่สุดและ machinability ดีมาก โดยเฉพาะเหล็กคาร์บอนสูง ควรเลือกกระบวนการใด", "choices": ["Normalizing", "Full anneal", "Spheroidizing", "Quenching"], "a": 2, "ex": "spheroidizing ทำให้ cementite กลม ช่วยให้นิ่มและกลึงง่าย"}, {"cat": "Metal", "q": "Normalizing ต่างจาก full anneal อย่างเด่นที่สุดในข้อใด", "choices": ["normalizing ใช้ต่ำกว่า A1 เสมอ", "normalizing ปล่อยเย็นในอากาศ จึงให้โครงสร้างละเอียดกว่า", "full anneal ทำให้แข็งกว่าเสมอ", "full anneal ต้อง quench ในน้ำ"], "a": 1, "ex": "normalizing เย็นในอากาศเร็วกว่า จึงละเอียดและแข็งกว่า full anneal"}, {"cat": "Metal", "q": "คำว่า hardenability หมายถึงข้อใด", "choices": ["ความต้านทานการกดของผิวโลหะ", "ความสามารถของเหล็กในการเกิด martensite ลึกเข้าไปในชิ้นงาน", "ความเหนียวหลัง tempering", "อัตราการเกิด pearlite"], "a": 1, "ex": "hardenability ไม่ใช่ hardness แต่เป็นความสามารถในการชุบให้แข็งลึก"}, {"cat": "Metal", "q": "ในการทดสอบ Jominy end-quench ค่าที่วัดตามตำแหน่งจากปลายชุบคือข้อใด", "choices": ["elastic modulus", "hardness", "thermal expansion", "electrical conductivity"], "a": 1, "ex": "Jominy วัด hardenability โดยดู hardness ตามระยะจากปลายชุบ"}, {"cat": "Metal", "q": "ถ้า hardenability curve ของเหล็กชนิดหนึ่งตกลงช้ามากเมื่อห่างจากปลายชุบ แปลว่าอย่างไร", "choices": ["มี carbon ต่ำมาก", "มี hardenability สูง", "ไม่มี martensite ที่ปลายชุบ", "ชุบไม่ได้"], "a": 1, "ex": "hardness คงอยู่ไกล แสดงว่าชุบแข็งลึกได้"}, {"cat": "Metal", "q": "ข้อใดเป็นลักษณะเด่นของ bainite เมื่อเทียบกับ pearlite", "choices": ["เกิดที่อุณหภูมิสูงกว่า pearlite มาก", "ละเอียดกว่าและมักแข็งกว่า pearlite", "เป็นโครงสร้าง diffusionless", "ประกอบด้วย austenite ล้วน"], "a": 1, "ex": "bainite เกิดต่ำกว่า pearlite และละเอียดกว่า"}, {"cat": "Metal", "q": "หากอัตราการเย็นไม่เร็วพอจะหลบ nose ของ pearlite บน TTT diagram สิ่งใดมักเกิดก่อน", "choices": ["martensite", "tempered martensite", "pearlite/bainite", "spheroidite"], "a": 2, "ex": "ถ้าผ่าน nose จะเริ่มเกิด pearlite/bainite ก่อน"}, {"cat": "Metal", "q": "ข้อใดถูกต้องเกี่ยวกับ coarse pearlite และ fine pearlite", "choices": ["fine pearlite เกิดที่อุณหภูมิแปลงสูงกว่า", "coarse pearlite เกิดที่อุณหภูมิแปลงสูงกว่า", "ทั้งสองเกิดจาก martensite tempering", "coarse pearlite แข็งกว่าเสมอ"], "a": 1, "ex": "อุณหภูมิสูงกว่าให้ lamella หยาบกว่า"}, {"cat": "Metal", "q": "ข้อใดอธิบาย process annealing ได้ถูกต้อง", "choices": ["อบต่ำกว่า A1 เพื่อคืน ductility หลัง cold work", "quench แล้ว temper ทันที", "ให้ร้อนสูงกว่า A3 แล้วเย็นในอากาศ", "ใช้กับเหล็กคาร์บอนสูงเพื่อให้ cementite กลม"], "a": 0, "ex": "process annealing ใช้แก้ work hardening"}, {"cat": "Metal", "q": "ข้อใดเป็นผลเด่นของ cold working", "choices": ["strength เพิ่ม และ ductility ลด", "strength ลด และ ductility เพิ่ม", "grain โตขึ้นมาก", "โลหะไม่เกิด strain hardening"], "a": 0, "ex": "cold working ทำให้ strain hardening"}, {"cat": "Metal", "q": "ถ้าต้องการลด residual stress โดยไม่เน้นเปลี่ยนโครงสร้างมาก ควรใช้วิธีใด", "choices": ["Stress relief", "Quench", "Normalizing", "Spheroidizing"], "a": 0, "ex": "stress relief เน้นคลายความเค้นตกค้าง"}, {"cat": "Metal", "q": "M(start) บน complete TTT diagram หมายถึงข้อใด", "choices": ["อุณหภูมิที่ martensite หลอมหมด", "อุณหภูมิที่ martensite เริ่มเกิด", "อุณหภูมิที่ bainite เริ่มเกิด", "อุณหภูมิที่ pearlite เปลี่ยนเป็น bainite"], "a": 1, "ex": "Ms = martensite start"}, {"cat": "Metal", "q": "ในการชุบแข็ง steel ปัจจัยใดไม่ใช่ตัวแปรสำคัญที่สไลด์เน้นต่อความสำเร็จของการชุบ", "choices": ["alloy composition", "quenching medium", "size and shape of specimen", "สีผิวหลังชุบ"], "a": 3, "ex": "องค์ประกอบ, ตัวกลางชุบ และขนาดรูปทรงสำคัญ"}, {"cat": "Metal", "q": "หาก austenite ถูกทำให้เย็นลงต่ำกว่า Ms มากขึ้น ปริมาณ martensite โดยทั่วไปจะเป็นอย่างไร", "choices": ["ลดลง", "เพิ่มขึ้น", "คงเดิมเสมอ", "หายไปเป็น pearlite"], "a": 1, "ex": "ต่ำลงจาก Ms มากขึ้น martensite จะเกิดมากขึ้น"}, {"cat": "Polymer", "q": "ข้อใดอธิบายคำว่า homopolymer ได้ตรงที่สุด", "choices": ["พอลิเมอร์ที่มี monomer ชนิดเดียวซ้ำไปตลอดสาย", "พอลิเมอร์ที่มี 2 monomer สลับกัน", "พอลิเมอร์ที่ crosslink สูง", "พอลิเมอร์ธรรมชาติเท่านั้น"], "a": 0, "ex": "homopolymer = repeating unit ชนิดเดียว"}, {"cat": "Polymer", "q": "ABS จัดเป็นตัวอย่างของข้อใด", "choices": ["homopolymer", "copolymer", "thermoset เท่านั้น", "ceramic polymer"], "a": 1, "ex": "ABS = acrylonitrile-butadiene-styrene เป็น copolymer"}, {"cat": "Polymer", "q": "ถ้าอุณหภูมิของพอลิเมอร์สูงขึ้นโดยทั่วไป ข้อใดมักเกิดขึ้น", "choices": ["modulus เพิ่มขึ้น", "วัสดุนิ่มลงและยืดง่ายขึ้น", "Tg เพิ่มทันที", "ผลึกเพิ่มขึ้นเสมอ"], "a": 1, "ex": "อุณหภูมิสูงขึ้น พอลิเมอร์นิ่มลง"}, {"cat": "Polymer", "q": "ค่าพื้นที่ใต้กราฟ stress-strain ของพอลิเมอร์แทนสมบัติใด", "choices": ["modulus", "hardness", "toughness", "density"], "a": 2, "ex": "พื้นที่ใต้กราฟ = toughness"}, {"cat": "Polymer", "q": "ข้อใดคือความหมายของ necking ใน tensile test ของพอลิเมอร์", "choices": ["ชิ้นงานขยายหน้าตัดสม่ำเสมอ", "ชิ้นงานคอดลงเฉพาะบางบริเวณ", "เกิดการหลอมละลาย", "ผิวชิ้นงานแข็งขึ้นเพราะ quench"], "a": 1, "ex": "necking คือคอคอดบางตำแหน่ง"}, {"cat": "Polymer", "q": "คำว่า viscoelastic behavior สื่อถึงข้อใด", "choices": ["ตอบสนองแบบโลหะล้วน", "มีทั้งลักษณะยืดหยุ่นและขึ้นกับเวลาแบบของหนืด", "แข็งมากและเปราะเสมอ", "เป็นสมบัติของ thermoset เท่านั้น"], "a": 1, "ex": "viscoelastic = elastic + viscous"}, {"cat": "Polymer", "q": "ข้อใดถูกต้องเกี่ยวกับ Tg", "choices": ["เป็นจุดหลอมเหลวของส่วนผลึก", "เป็นอุณหภูมิที่พอลิเมอร์เริ่มเปลี่ยนจาก glassy ไปนิ่มขึ้น", "มีเฉพาะ thermoset", "สูงกว่า Tm เสมอ"], "a": 1, "ex": "Tg = glass transition"}, {"cat": "Polymer", "q": "ถ้าพอลิเมอร์อยู่ต่ำกว่า Tg มาก โดยทั่วไปวัสดุมักมีลักษณะอย่างไร", "choices": ["glassy และค่อนข้างเปราะ", "viscous liquid", "rubbery flow", "หลอมไหล"], "a": 0, "ex": "ต่ำกว่า Tg = glassy"}, {"cat": "Polymer", "q": "Tm ของพอลิเมอร์หมายถึงข้อใด", "choices": ["อุณหภูมิที่โมเลกุลหยุดเคลื่อนที่", "อุณหภูมิการหลอมของส่วนผลึก", "อุณหภูมิที่เกิด necking", "อุณหภูมิการ crosslink"], "a": 1, "ex": "Tm = melting temperature ของส่วนผลึก"}, {"cat": "Polymer", "q": "ข้อใดมีแนวโน้มตกผลึกง่ายที่สุด", "choices": ["branched atactic polymer", "linear isotactic polymer", "random copolymer ที่มี side group ใหญ่", "graft copolymer"], "a": 1, "ex": "linear และ tacticity ที่เป็นระเบียบช่วยการตกผลึก"}, {"cat": "Polymer", "q": "atactic polymer มีแนวโน้มอย่างไรเมื่อเทียบกับ isotactic", "choices": ["ตกผลึกง่ายกว่า", "ตกผลึกยากกว่า", "มี Tm สูงกว่าเสมอ", "เป็น thermoset"], "a": 1, "ex": "atactic เรียงตัวไม่เป็นระเบียบ จึงตกผลึกยาก"}, {"cat": "Polymer", "q": "ข้อใดอธิบาย thermoplastic ได้ถูกต้อง", "choices": ["ให้ความร้อนแล้วเซตตัวถาวร", "ให้ความร้อนแล้วอ่อนตัว และเย็นแล้วแข็งกลับได้หลายครั้ง", "ยืดได้มากเหมือนยางทุกชนิด", "ใช้ไม่ได้กับงานฉีดขึ้นรูป"], "a": 1, "ex": "thermoplastic หลอม/ขึ้นรูปซ้ำได้"}, {"cat": "Polymer", "q": "ข้อใดอธิบาย thermoset ได้ถูกต้อง", "choices": ["หลอมขึ้นรูปซ้ำได้ง่าย", "เมื่อ cure แล้วเกิดโครงข่ายถาวร จึงไม่อ่อนตัวแบบเดิมอีก", "มี Tg ต่ำมากเสมอ", "ใช้กับ epoxy ไม่ได้"], "a": 1, "ex": "thermoset cure แล้วเซตถาวร"}, {"cat": "Polymer", "q": "PMMA รู้จักในชื่อการค้า/การใช้งานใดใกล้เคียงที่สุด", "choices": ["Teflon", "Acrylic", "Nylon", "Bakelite"], "a": 1, "ex": "PMMA = acrylic"}, {"cat": "Polymer", "q": "PTFE รู้จักกันทั่วไปว่าอะไร", "choices": ["PVC", "Acrylic", "Teflon", "Polyester"], "a": 2, "ex": "PTFE = Teflon"}, {"cat": "Polymer", "q": "ข้อใดเป็นการใช้งานที่สัมพันธ์กับ PET มากที่สุด", "choices": ["ขวดเครื่องดื่มและเส้นใย polyester", "ท่อประปาแข็ง", "กระทะเคลือบลื่น", "ของเล่นต่อบล็อก"], "a": 0, "ex": "PET ใช้ทำขวดและเส้นใยโพลีเอสเตอร์"}, {"cat": "Polymer", "q": "PVC เด่นในงานใดมากที่สุดเมื่อเทียบกับตัวเลือกอื่น", "choices": ["ท่อและฉนวนสายไฟ", "กระทะเคลือบ", "เลนส์อะคริลิก", "เชือกไนลอน"], "a": 0, "ex": "PVC ใช้ในท่อและฉนวนสายไฟบ่อย"}, {"cat": "Polymer", "q": "ข้อใดเหมาะเป็นตัวอย่าง elastomer มากที่สุด", "choices": ["natural rubber", "PMMA", "Bakelite", "PTFE"], "a": 0, "ex": "elastomer ยืดและคืนรูปดี เช่น ยาง"}, {"cat": "Polymer", "q": "ในการทดสอบความแข็งของพอลิเมอร์ แนวคำตอบที่ใกล้ข้อสอบจริงมากที่สุดคือข้อใด", "choices": ["Izod/Charpy เท่านั้น", "Rockwell หรือ durometer แนว hardness test", "Flexural strength", "Tg/Tm"], "a": 1, "ex": "hardness test มักโยงกับ Rockwell/durometer"}, {"cat": "Polymer", "q": "ข้อใดเป็นตัวอย่างของ polymer engineering material มากกว่าพลาสติกใช้ทั่วไป", "choices": ["Nylon หรือ POM", "PE film", "PS foam ใช้ครั้งเดียว", "PVC อ่อนทำม่าน"], "a": 0, "ex": "nylon และ POM ใช้ทำชิ้นส่วนวิศวกรรมได้ดี"}, {"cat": "Composite", "q": "ข้อใดเป็นการแบ่งคอมโพสิตแบบใหญ่ที่ถูกต้องที่สุด", "choices": ["metal, polymer, ceramic", "particle-reinforced, fiber-reinforced, structural", "thermoplastic, thermoset, elastomer", "ionic, covalent, metallic"], "a": 1, "ex": "การแบ่งคอมโพสิตใหญ่ตามลักษณะ reinforcement/structure"}, {"cat": "Composite", "q": "ใน composite โดยทั่วไป matrix ทำหน้าที่ใดเด่นที่สุด", "choices": ["เป็นเฟสต่อเนื่อง ยึด reinforcement และถ่ายแรง", "เป็นตัวรับแรงหลักแทน reinforcement เสมอ", "ทำให้เกิด martensite", "ลด Tg"], "a": 0, "ex": "matrix เป็นเฟสต่อเนื่องและช่วยถ่ายแรง"}, {"cat": "Composite", "q": "reinforcement ในคอมโพสิตมีบทบาทเด่นที่สุดในข้อใด", "choices": ["เพิ่มสมบัติเชิงกล เช่น strength/stiffness", "ทำให้หลอมง่ายขึ้น", "เพิ่ม plasticity ของ clay", "ลดความแข็งทุกกรณี"], "a": 0, "ex": "reinforcement ใช้เสริมสมบัติเชิงกล"}, {"cat": "Composite", "q": "ข้อใดกล่าวถูกต้องเกี่ยวกับ particle-reinforced composite", "choices": ["ใช้เส้นใยต่อเนื่องเป็นหลัก", "สมบัติขึ้นกับปริมาณ ขนาด รูปร่าง การกระจายตัวของอนุภาค", "ไม่มี matrix", "ใช้ได้เฉพาะ polymer"], "a": 1, "ex": "particle composite ขึ้นกับ concentration/size/shape/distribution"}, {"cat": "Composite", "q": "ถ้าต้องการสมบัติสูงสุดตามแนวแรงดึงเดียว การจัดเส้นใยแบบใดเหมาะที่สุด", "choices": ["discontinuous random", "continuous aligned", "particle dispersed", "laminar random particles"], "a": 1, "ex": "continuous aligned fiber ให้สมบัติสูงสุดตามแนวเส้นใย"}, {"cat": "Composite", "q": "ข้อใดอธิบาย critical length (Lc) ได้ใกล้เคียงที่สุด", "choices": ["ความยาวขั้นต่ำของเส้นใยที่ทำให้เสริมแรงได้มีประสิทธิภาพ", "ความยาวสูงสุดที่ใช้ได้ใน filament winding", "ความหนาของ matrix ขั้นต่ำ", "ระยะระหว่างชั้นใน sandwich"], "a": 0, "ex": "Lc คือความยาวขั้นต่ำของเส้นใยสำหรับการถ่ายแรงที่คุ้ม"}, {"cat": "Composite", "q": "เมื่อ L < Lc สำหรับ short fiber composite ผลที่คาดได้คือข้อใด", "choices": ["เส้นใยเสริมแรงได้ไม่เต็มประสิทธิภาพ", "เส้นใยทำงานได้ดีที่สุด", "matrix หายไป", "ชิ้นงานกลายเป็น structural composite"], "a": 0, "ex": "สั้นเกินไป แรงถ่ายเข้าเส้นใยไม่เต็ม"}, {"cat": "Composite", "q": "ข้อใดเป็นตัวอย่าง PMC", "choices": ["epoxy matrix กับ glass fiber", "aluminum matrix กับ SiC", "ceramic matrix กับ carbon fiber", "wood laminate"], "a": 0, "ex": "PMC = polymer matrix composite"}, {"cat": "Composite", "q": "ข้อใดเป็นข้อดีเด่นของ MMC เมื่อเทียบกับ PMC", "choices": ["ใช้งานอุณหภูมิสูงกว่าและไม่ติดไฟง่าย", "เบากว่าเสมอ", "ผลิตง่ายกว่าเสมอ", "นิ่มกว่าเสมอ"], "a": 0, "ex": "MMC ทนอุณหภูมิสูงและไม่ติดไฟง่ายกว่า PMC"}, {"cat": "Composite", "q": "CMC มักเหมาะกับงานแบบใด", "choices": ["งานอุณหภูมิสูงและสภาวะรุนแรง", "บรรจุภัณฑ์ใช้ครั้งเดียว", "ฉนวนสายไฟบ้านทั่วไป", "งานที่ต้องหลอมซ้ำ"], "a": 0, "ex": "CMC ใช้ในงานอุณหภูมิและความเค้นสูง"}, {"cat": "Composite", "q": "ข้อใดกล่าวถูกต้องเกี่ยวกับ hybrid composite", "choices": ["ใช้เส้นใยต่างชนิดตั้งแต่ 2 ชนิดขึ้นไปใน matrix เดียว", "ต้องมี matrix เป็นโลหะเท่านั้น", "ต้องเป็น sandwich panel เสมอ", "ใช้ได้เฉพาะกับ carbon fiber"], "a": 0, "ex": "hybrid ใช้ fiber หลายชนิดเพื่อบาลานซ์สมบัติ"}, {"cat": "Composite", "q": "การจับคู่ใดสอดคล้องกับเส้นใยเสริมแรงและลักษณะเด่นได้ดีที่สุด", "choices": ["glass fiber – ถูกกว่าแต่ stiffness ต่ำกว่า carbon", "aramid – อ่อนตัวเมื่อร้อนเหมือน thermoplastic ทั่วไป", "carbon fiber – ใช้แทน matrix", "glass fiber – เป็น thermoset"], "a": 0, "ex": "glass ถูกกว่าและ stiffness ต่ำกว่า carbon"}, {"cat": "Composite", "q": "aramiด fiber ที่รู้จักกันทั่วไปในเชิงการค้าและโครงสร้างคือข้อใด", "choices": ["poly(p-phenylene terephthalamide), ใช้ชื่อ Kevlar", "polymethyl methacrylate, ใช้ชื่อ acrylic", "polytetrafluoroethylene, ใช้ชื่อ Teflon", "polyvinyl chloride, ใช้ชื่อ PVC"], "a": 0, "ex": "aramid เช่น Kevlar = poly(p-phenylene terephthalamide)"}, {"cat": "Composite", "q": "Pultrusion เหมาะที่สุดกับชิ้นงานแบบใด", "choices": ["ชิ้นงานยาวหน้าตัดคงที่", "ชิ้นงานกลวงทรงถังแรงดัน", "แผ่น sandwich ขนาดใหญ่ทุกแบบ", "ชิ้นงานทรงอิสระซับซ้อนมาก"], "a": 0, "ex": "pultrusion ใช้ดึงผ่าน die ได้หน้าตัดคงที่ยาวต่อเนื่อง"}, {"cat": "Composite", "q": "Filament winding เหมาะกับการผลิตชิ้นงานชนิดใด", "choices": ["แท่งตันหน้าตัดคงที่", "ชิ้นงานกลวงทรงกระบอกหรือถัง", "ผงโลหะอัดแน่น", "แผ่นไม้อัด"], "a": 1, "ex": "filament winding ใช้พันเส้นใยรอบ mandrel สำหรับชิ้นงานกลวง"}, {"cat": "Composite", "q": "คำว่า prepreg หมายถึงข้อใด", "choices": ["เส้นใยต่อเนื่องที่เคลือบเรซินไว้ล่วงหน้า", "การดันโลหะผ่าน die", "การเผาผงเซรามิก", "การวางอนุภาคใน matrix"], "a": 0, "ex": "prepreg = pre-impregnated fibers"}, {"cat": "Composite", "q": "Laminar composite เด่นอย่างไร", "choices": ["มีหลายชั้น ทำให้ได้ความแข็งแรงค่อนข้างดีในหลายทิศทาง", "มีแต่อนุภาคทรงกลม", "ไม่มี matrix", "ใช้ได้เฉพาะไม้"], "a": 0, "ex": "laminar ใช้แผ่นหลายชั้นเพื่อเพิ่มสมบัติหลายทิศ"}, {"cat": "Composite", "q": "Sandwich panel มีองค์ประกอบหลักอย่างไร", "choices": ["face sheet สองด้าน + core เบาตรงกลาง", "อนุภาคกับ matrix เท่านั้น", "เส้นใยสุ่มอย่างเดียว", "โลหะล้วน 3 ชั้น"], "a": 0, "ex": "sandwich = หน้าแข็งสองด้าน ไส้เบา"}, {"cat": "Composite", "q": "หน้าที่สำคัญของ core ใน sandwich panel คือข้อใด", "choices": ["คั่นระยะระหว่าง face sheets และช่วยให้โครงสร้าง stiff แต่เบา", "เป็นตัวรับแรงดึงหลักแทน face sheet เสมอ", "เพิ่ม hardness ผิว", "ทำให้เกิด martensite"], "a": 0, "ex": "core ช่วยค้ำระยะและรับ shear บางส่วน"}, {"cat": "Composite", "q": "ข้อใดเป็นตัวอย่าง structural composite มากที่สุด", "choices": ["wood laminate หรือ sandwich panel", "epoxy กับ glass fiber อย่างเดียว", "ยางเติม carbon black", "อลูมิเนียมผสมแมกนีเซียม"], "a": 0, "ex": "structural composite เน้น geometrical design เช่น laminate/sandwich"}, {"cat": "Ceramic", "q": "ข้อใดอธิบายสมบัติโดยรวมของเซรามิกได้ใกล้เคียงที่สุด", "choices": ["แข็ง ทนร้อน แต่เปราะ", "อ่อนตัวง่ายและเหนียวมาก", "นำไฟฟ้าดีทุกชนิด", "หลอมต่ำและยืดได้มาก"], "a": 0, "ex": "ceramic มักแข็ง ทนร้อน และเปราะ"}, {"cat": "Ceramic", "q": "เหตุผลหลักที่เซรามิกมักเปราะคือข้อใด", "choices": ["พันธะ ionic/covalent แข็งแรงและการลื่นไถลของโครงผลึกเกิดยาก", "มี dislocation สูงมากจนไหลง่าย", "มี matrix อ่อนนุ่ม", "มี Tg ต่ำ"], "a": 0, "ex": "พันธะแข็งแรงแต่เสียรูปพลาสติกยาก"}, {"cat": "Ceramic", "q": "Glass ต่างจากเซรามิกผลึกทั่วไปเด่นที่สุดในข้อใด", "choices": ["glass มักเป็น amorphous มากกว่า", "glass ต้องเป็น ionic 100%", "glass ไม่เปราะ", "glass ทนร้อนสูงกว่าเสมอ"], "a": 0, "ex": "glass ไม่มี long-range crystalline order ชัด"}, {"cat": "Ceramic", "q": "คำว่า sintering หมายถึงข้อใด", "choices": ["เผาเพื่อให้อนุภาคผงยึดติดกันแน่นขึ้น", "quench ผงเซรามิกในน้ำ", "การดึงผ่าน die", "ทำให้ clay ดูดน้ำ"], "a": 0, "ex": "sintering คือการเผาให้ผงประสานตัว"}, {"cat": "Ceramic", "q": "green body หรือ greenware คือข้อใด", "choices": ["ชิ้นงานที่ขึ้นรูปแล้วแต่ยังไม่เผา", "ชิ้นงานที่หลอมแล้ว", "ชิ้นงานที่ชุบแข็งแล้ว", "ผงดิบที่ยังไม่กดอัด"], "a": 0, "ex": "green body คือชิ้นงานดิบก่อนเผา"}, {"cat": "Ceramic", "q": "Clay เมื่อนำมาผสมน้ำอย่างเหมาะสมจะได้สิ่งใด", "choices": ["plastic mass ที่ปั้นขึ้นรูปได้", "martensite", "tempered structure", "viscous liquid ถาวร"], "a": 0, "ex": "clay + H2O = plastic mass"}, {"cat": "Ceramic", "q": "Flux มีหน้าที่หลักอะไรในระบบแก้ว/เซรามิก", "choices": ["ช่วยลดอุณหภูมิการหลอมหรือทำให้หลอมง่ายขึ้น", "เพิ่มจุดหลอมให้สูงขึ้น", "เพิ่ม flexural strength โดยตรงเสมอ", "ทำให้เกิด green body"], "a": 0, "ex": "flux = ตัวช่วยหลอม"}, {"cat": "Ceramic", "q": "Flexural strength เป็นการทดสอบที่เน้นสมบัติใด", "choices": ["ความแข็งแรงต่อการดัด", "ความแข็งผิว", "ความเหนียวต่อการกระแทก", "การนำไฟฟ้า"], "a": 0, "ex": "flexural = bending"}, {"cat": "Ceramic", "q": "การเติม CaO ลงใน ZrO2 มีจุดประสงค์หลักใด", "choices": ["ช่วยให้บางเฟส เช่น cubic เสถียรขึ้น", "ทำให้ ZrO2 กลายเป็น polymer", "ลดความหนาแน่นเป็นศูนย์", "ทำให้หลอมทันทีที่อุณหภูมิห้อง"], "a": 0, "ex": "CaO เป็น stabilizer ของ zirconia"}, {"cat": "Ceramic", "q": "ข้อใดเป็นตัวอย่างวัสดุทนไฟ (refractory) ที่ใกล้เคียงเนื้อหาเรียนมากที่สุด", "choices": ["MgO หรือ fireclay", "PMMA", "ABS", "LDPE"], "a": 0, "ex": "refractory เช่น MgO, silica, fireclay"}, {"cat": "Ceramic", "q": "Graphite มีลักษณะเด่นใดที่ทำให้เลื่อนลื่นได้ง่าย", "choices": ["พันธะในชั้นแข็งแรง แต่ระหว่างชั้นยึดกันอ่อนกว่า", "ไม่มีอะตอมคาร์บอนจริง", "เป็น amorphous 100%", "มีน้ำเป็นส่วนประกอบ"], "a": 0, "ex": "graphite เป็นชั้น ๆ เลื่อนกันง่าย"}, {"cat": "Ceramic", "q": "ข้อใดเป็นตัวอย่างเซรามิกวิศวกรรมมากที่สุด", "choices": ["SiC หรือ Si3N4", "PP", "epoxy", "copper"], "a": 0, "ex": "SiC/Si3N4 เป็น engineering ceramics"}, {"cat": "Ceramic", "q": "การเลือกทดสอบเซรามิกด้วย flexural test มากกว่าตึงตรงๆ มักเกี่ยวกับข้อใด", "choices": ["เซรามิกเปราะและดัดวัดได้เหมาะกว่า", "เซรามิกยืดได้มาก", "เซรามิกมี necking ชัด", "เซรามิกเป็น thermoplastic"], "a": 0, "ex": "ceramic เปราะ จึงนิยมทดสอบดัด"}, {"cat": "Ceramic", "q": "คำว่า flint ในบริบทเซรามิก/แก้วควรเข้าใจอย่างปลอดภัยที่สุดว่าอะไร", "choices": ["วัตถุดิบ/ส่วนประกอบในระบบเซรามิกและแก้ว", "ชื่อเครื่องทดสอบ hardness", "ชื่อโครงสร้างของ bainite", "ตัวกลาง quench"], "a": 0, "ex": "flint อยู่ในกลุ่มวัตถุดิบสายแก้ว/เซรามิก"}, {"cat": "Ceramic", "q": "ข้อใดสัมพันธ์กับ transformation toughening ของ zirconia มากที่สุด", "choices": ["การเปลี่ยนเฟสใกล้หน้ารอยร้าวช่วยต้านการลามรอยร้าว", "การหลอมต่ำลงด้วย flux", "การเกิด pearlite", "การกลายเป็น thermoset"], "a": 0, "ex": "zirconia toughening อาศัย phase transformation"}, {"cat": "Manufacturing", "q": "ข้อใดอธิบาย forging ได้ใกล้เคียงที่สุด", "choices": ["การทำให้โลหะเปลี่ยนรูปด้วยแรงอัด/ตี", "การหลอมโลหะแล้วเทลงแบบ", "การดึงผ่าน die ด้วยแรงดึง", "การอัดผงแล้วเผา"], "a": 0, "ex": "forging คือการตีหรืออัดโลหะ"}, {"cat": "Manufacturing", "q": "Closed-die forging เด่นอย่างไรเมื่อเทียบกับ open-die forging", "choices": ["แม่พิมพ์ช่วยกำหนดรูปร่างชิ้นงานชัดเจนกว่า", "ใช้ได้เฉพาะโลหะเย็น", "ไม่มีแม่พิมพ์", "ทำเฉพาะแผ่นบาง"], "a": 0, "ex": "closed-die ใช้ cavity ของแม่พิมพ์กำหนดรูป"}, {"cat": "Manufacturing", "q": "Rolling เป็นกระบวนการที่เหมาะกับผลลัพธ์แบบใดมากที่สุด", "choices": ["ลดความหนาของแผ่น/strip/foil", "ทำชิ้นงานกลวงทรงถัง", "สร้างชั้น sandwich", "ทำให้ clay เป็น plastic mass"], "a": 0, "ex": "rolling ใช้รีดลดความหนา"}, {"cat": "Manufacturing", "q": "ข้อใดแยก extrusion ออกจาก drawing ได้ถูกต้อง", "choices": ["extrusion ใช้แรงอัดดันผ่าน die ส่วน drawing ใช้แรงดึงลากผ่าน die", "extrusion และ drawing เป็นเรื่องเดียวกัน", "drawing ใช้แรงอัด ส่วน extrusion ใช้แรงดึง", "extrusion ใช้เฉพาะผงโลหะ"], "a": 0, "ex": "ดัน vs ดึง เป็นจุดแยกสำคัญ"}, {"cat": "Manufacturing", "q": "กระบวนการใดเหมาะกับการทำลวดหรือแท่งให้เล็กลงและยาวขึ้นด้วยแรงดึง", "choices": ["Drawing", "Rolling", "Casting", "Forging"], "a": 0, "ex": "drawing = tensile force through die"}, {"cat": "Manufacturing", "q": "Casting เหมาะเป็นพิเศษเมื่อใด", "choices": ["รูปร่างซับซ้อนมากหรือขึ้นรูปวิธีอื่นยาก", "ต้องการ strain hardening สูงสุด", "ต้องการ continuous aligned fibers", "ต้องการ matrix polymer"], "a": 0, "ex": "casting เหมาะกับชิ้นใหญ่/ซับซ้อน/โลหะ ductility ต่ำ"}, {"cat": "Manufacturing", "q": "ข้อใดเป็นชนิดของ casting ที่พบได้บ่อยตามเนื้อหาเรียน", "choices": ["sand, die, investment, continuous casting", "TTT, CCT, quench casting", "pultrusion casting", "laminar casting"], "a": 0, "ex": "สไลด์ยก 4 ชนิดนี้"}, {"cat": "Manufacturing", "q": "Powder metallurgy เริ่มต้นจากสิ่งใด", "choices": ["ผงโลหะที่ถูกอัดเป็นรูปแล้วนำไป heat treatment/sinter", "โลหะหลอมเหลวในเบ้า", "เส้นใยชุบเรซิน", "ดินผสมน้ำ"], "a": 0, "ex": "P/M = compacted powder + sintering"}, {"cat": "Manufacturing", "q": "คำที่ต้องจับคู่กับ powder metallurgy มากที่สุดคือข้อใด", "choices": ["sintering", "necking", "tempering", "lamination"], "a": 0, "ex": "powder metallurgy ใช้ sintering เป็นขั้นสำคัญ"}, {"cat": "Manufacturing", "q": "ข้อเด่นอย่างหนึ่งของ hot working คืออะไร", "choices": ["เปลี่ยนรูปได้มากและใช้แรงต่ำกว่า cold working", "ผิวสำเร็จดีกว่า cold working เสมอ", "ทำให้ strength เพิ่มและ ductility เพิ่มพร้อมกันเสมอ", "ไม่มี oxidation เลย"], "a": 0, "ex": "hot working deform ได้มาก ใช้แรงน้อยกว่า"}, {"cat": "Manufacturing", "q": "ข้อเด่นอย่างหนึ่งของ cold working คือข้อใด", "choices": ["ผิวสำเร็จและความแม่นมิติดีกว่า hot working", "ไม่เกิด strain hardening", "ductility เพิ่มมาก", "ไม่มีการเพิ่ม strength"], "a": 0, "ex": "cold working ให้ผิวดี มิติแม่น และ strength เพิ่ม"}, {"cat": "Manufacturing", "q": "ถ้าถามว่า process ใดใช้ลูกกลิ้งสองตัวสร้าง compressive reduction in thickness คำตอบคือข้อใด", "choices": ["Rolling", "Drawing", "Extrusion", "Forging"], "a": 0, "ex": "rolling ใช้ rolls เพื่อลดความหนา"}, {"cat": "Manufacturing", "q": "ข้อใดเป็นผลทั่วไปของ cold working ตามแนวข้อสอบจริง", "choices": ["strength เพิ่มและ ductility ลด", "strength ลดและ ductility เพิ่ม", "grain หลอมเหลว", "กลายเป็น martensite"], "a": 0, "ex": "cold working = strain hardening"}, {"cat": "Manufacturing", "q": "ถ้าต้องการชิ้นงานยาวหน้าตัดคงที่ที่ซับซ้อนกว่า rolling มักเลือกกระบวนการใด", "choices": ["Extrusion", "Casting", "Hot working ทั่วไป", "Izod test"], "a": 0, "ex": "extrusion ทำหน้าตัดคงที่ซับซ้อนได้ดี"}, {"cat": "Manufacturing", "q": "ข้อใดจับคู่กระบวนการกับแรงเด่นได้ถูกต้อง", "choices": ["Drawing – tensile force", "Rolling – tensile force", "Casting – compressive force only", "Forging – shear only"], "a": 0, "ex": "drawing ใช้ tensile force ที่ด้านออก"}, {"cat": "Mixed", "q": "หากโจทย์ถามว่า 'ข้อใดไม่ใช่ผลของ tempering' ตัวเลือกใดควรถูกมองเป็นตัวหลอกมากที่สุด", "choices": ["ลด brittleness", "เพิ่ม toughness", "ทำให้ martensite กลับเป็น austenite ทันทีทั้งชิ้น", "ลดความเค้นตกค้างบางส่วน"], "a": 2, "ex": "tempering ไม่ทำให้กลับเป็น austenite ทั้งหมดทันที"}, {"cat": "Mixed", "q": "ถ้าโจทย์ย้ำคำว่า 'ยกเว้นข้อใด' เกี่ยวกับ composite ข้อใดมักเป็นตัวผิด", "choices": ["matrix เป็นเฟสต่อเนื่อง", "reinforcement ช่วยเพิ่มสมบัติเชิงกล", "การแบ่งคอมโพสิตแบบใหญ่คือ particle/fiber/structural", "สมบัติของ composite ขึ้นกับสีตัวอักษรในสไลด์มากที่สุด"], "a": 3, "ex": "สีตัวอักษรไม่เกี่ยวกับสมบัติวัสดุ"}, {"cat": "Mixed", "q": "ถ้าอยากจำง่ายว่า PMMA, PTFE, ABS ตัวใดจับคู่ชื่อการค้า/ใช้งานผิด ข้อใดผิด", "choices": ["PMMA – acrylic", "PTFE – Teflon", "ABS – Lego/ของเล่น", "PTFE – PVC pipe"], "a": 3, "ex": "PTFE ไม่ใช่ PVC pipe"}, {"cat": "Mixed", "q": "หากข้อสอบถามว่าวัสดุใด 'ต่ำกว่า Tg มาก' ควรคิดถึงสภาพใดก่อน", "choices": ["glassy", "rubbery flow", "viscous liquid", "melting"], "a": 0, "ex": "ต่ำกว่า Tg = glassy"}, {"cat": "Mixed", "q": "ข้อใดเป็นแนวคิดที่ใช้ร่วมกันระหว่าง powder metallurgy และ ceramics มากที่สุด", "choices": ["มีขั้นตอนอาศัยผงและ sintering", "ต้อง quench ในน้ำทันที", "ใช้เส้นใยต่อเนื่อง", "ต้องหลอมทั้งชิ้นก่อนเสมอ"], "a": 0, "ex": "ทั้งสองเกี่ยวกับผงและการเผาให้ประสานตัว"}, {"cat": "Metal", "q": "ถ้าข้อสอบให้ cooling curve ผ่านเขต pearlite ก่อนถึง Ms โครงสร้างสุดท้ายควรมีแนวโน้มเป็นข้อใด", "choices": ["pearlite ร่วมกับ martensite ได้", "martensite ล้วนเสมอ", "austenite ล้วน", "tempered martensite ทันที"], "a": 0, "ex": "ผ่าน pearlite ก่อนแล้ว austenite ที่เหลือค่อยเปลี่ยนเป็น martensite"}, {"cat": "Polymer", "q": "ข้อใดเป็นตัวอย่างการใช้งานของ polymer ที่สอดคล้องกับเนื้อหาสไลด์มากที่สุด", "choices": ["PVC – ท่อและฉนวนสายไฟ", "PMMA – ยางรถ", "PTFE – ขวดน้ำอัดลม", "PET – ด้ามหม้อ bakelite"], "a": 0, "ex": "PVC ใช้กับท่อ/ฉนวน"}, {"cat": "Composite", "q": "ถ้าโจทย์ถามว่า 'ตัวใดไม่ใช่ matrix class ของ composites' ควรตอบข้อใด", "choices": ["polymer", "metal", "ceramic", "pearlite"], "a": 3, "ex": "PMC/MMC/CMC เท่านั้น ไม่ใช่ pearlite"}, {"cat": "Ceramic", "q": "ในระบบแก้ว/เซรามิก ถ้าเพิ่ม flux จะคาดหวังผลใด", "choices": ["หลอมง่ายขึ้น", "แข็งขึ้นทันทีทุกกรณี", "กลายเป็น polymer", "เพิ่ม Tg เสมอ"], "a": 0, "ex": "flux ช่วยให้หลอมง่ายขึ้น"}, {"cat": "Manufacturing", "q": "หากโจทย์พูดถึง 'completely molten metal poured into a mold cavity' หมายถึงกระบวนการใด", "choices": ["Casting", "Forging", "Rolling", "Drawing"], "a": 0, "ex": "คำอธิบายตรงกับ casting"}];
+let idx = 0;
+let answers = Array(questions.length).fill(null);
+let checked = Array(questions.length).fill(false);
+const bar = document.getElementById('bar');
+const counter = document.getElementById('counter');
+const wrongCount = document.getElementById('wrongCount');
+const rightCount = document.getElementById('rightCount');
+const startPanel = document.getElementById('startPanel');
+const quizPanel = document.getElementById('quizPanel');
+const summaryPanel = document.getElementById('summaryPanel');
+const qnum = document.getElementById('qnum');
+const qcat = document.getElementById('qcat');
+const questionEl = document.getElementById('question');
+const optionsEl = document.getElementById('options');
+const feedbackEl = document.getElementById('feedback');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const resetThisBtn = document.getElementById('resetThisBtn');
+
+document.getElementById('startBtn').onclick = ()=>{startPanel.style.display='none';quizPanel.style.display='block';render();};
+
+function updateCounts(){
+  let r=0,w=0;
+  checked.forEach((c,i)=>{if(c){if(answers[i]===questions[i].a) r++; else w++;}});
+  rightCount.textContent=r; wrongCount.textContent=w;
+}
+
+function render(){
+  const q = questions[idx];
+  counter.textContent = `${idx+1} / ${questions.length}`;
+  bar.style.width = `${((idx+1)/questions.length)*100}%`;
+  qnum.textContent = `ข้อ ${idx+1}`;
+  qcat.textContent = `[${q.cat}]`;
+  questionEl.textContent = q.q;
+  optionsEl.innerHTML='';
+  q.choices.forEach((ch,i)=>{
+    const btn=document.createElement('button');
+    btn.className='option';
+    const thai=['ก.','ข.','ค.','ง.','จ.'][i]||'';
+    btn.textContent=`${thai} ${ch}`;
+    if(answers[idx]===i) btn.classList.add('selected');
+    if(checked[idx]){
+      if(i===q.a) btn.classList.add('correct');
+      if(answers[idx]===i && answers[idx]!==q.a) btn.classList.add('wrong');
+      btn.disabled=true;
+    }
+    btn.onclick=()=>{answers[idx]=i; checked[idx]=true; updateCounts(); render();};
+    optionsEl.appendChild(btn);
+  });
+  if(checked[idx]){
+    const ok=answers[idx]===q.a;
+    feedbackEl.style.display='block';
+    feedbackEl.className='feedback '+(ok?'ok':'');
+    const thai=['ก.','ข.','ค.','ง.','จ.'][q.a]||'';
+    feedbackEl.innerHTML=`<div class="label">${ok ? 'ตอบถูก ✓' : 'ตอบผิด ✕'}</div>
+      <div><b>เฉลย:</b> ${thai} ${q.choices[q.a]}</div>
+      <div style="margin-top:6px">${q.ex}</div>`;
+  } else {
+    feedbackEl.style.display='none';
+    feedbackEl.innerHTML='';
+  }
+  prevBtn.disabled = idx===0;
+  nextBtn.textContent = idx===questions.length-1 ? 'สรุปคะแนน' : 'ข้อต่อไป';
+}
+
+prevBtn.onclick=()=>{if(idx>0){idx--;render();}};
+nextBtn.onclick=()=>{if(idx===questions.length-1){finish();}else{idx++;render();}};
+resetThisBtn.onclick=()=>{answers[idx]=null;checked[idx]=false;updateCounts();render();};
+
+function finish(){
+  quizPanel.style.display='none';
+  summaryPanel.style.display='block';
+  let correct=0;
+  questions.forEach((q,i)=>{if(checked[i] && answers[i]===q.a) correct++;});
+  const pct=(correct/questions.length*100).toFixed(1);
+  document.getElementById('finalScore').textContent=`${correct} / ${questions.length}`;
+  document.getElementById('finalPct').textContent=`${pct}%`;
+  const catMap={};
+  questions.forEach((q,i)=>{if(!catMap[q.cat]) catMap[q.cat]={t:0,c:0}; catMap[q.cat].t++; if(answers[i]===q.a) catMap[q.cat].c++;});
+  document.getElementById('byCat').innerHTML = Object.entries(catMap).map(([k,v])=>`<div><b>${k}</b>: ${v.c} / ${v.t}</div>`).join('');
+  const missed=document.getElementById('missed');
+  missed.innerHTML='<h3>ข้อที่ตอบผิด</h3>';
+  questions.forEach((q,i)=>{
+    if(answers[i]!==q.a){
+      const thai=['ก.','ข.','ค.','ง.','จ.'][q.a]||'';
+      const your = answers[i]===null ? 'ไม่ได้ตอบ' : ((['ก.','ข.','ค.','ง.','จ.'][answers[i]]||'')+' '+q.choices[answers[i]]);
+      const div=document.createElement('div');
+      div.className='item';
+      div.innerHTML=`<div style="font-weight:800">ข้อ ${i+1} [${q.cat}]</div>
+        <div style="margin:6px 0">${q.q}</div>
+        <div style="color:#b42318"><b>คำตอบของเธอ:</b> ${your}</div>
+        <div style="color:#166534;margin-top:4px"><b>เฉลย:</b> ${thai} ${q.choices[q.a]}</div>
+        <div style="margin-top:4px" class="small">${q.ex}</div>`;
+      missed.appendChild(div);
+    }
+  });
+}
+updateCounts();
+</script>
+</body></html>
